@@ -1,4 +1,4 @@
-# 📒 AymaraContable v4.0
+# 📒 AymaraContable v1.0
 
 **Sistema de Gestión Contable y Comercial para PyMEs**
 
