@@ -184,3 +184,11 @@ $null
 # =========================================================
 # FIN DEL GITIGNORE
 # =========================================================
+
+# Ignorar backups de producción
+backups/
+*-produccion.sql
+*.dump
+
+# PERMITIR backups de desarrollo
+!Back/backups_dev/
