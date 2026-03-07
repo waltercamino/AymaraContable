@@ -1,0 +1,102 @@
+{
+  "export_date": "2026-02-25T00:00:00",
+  "description": "Backup de tablas legacy ventas/venta_detalles antes de eliminación de código",
+  "tables": {
+    "ventas": [
+      {
+        "id": 1,
+        "fecha": "2026-02-20",
+        "turno": "mañana",
+        "tipo_venta": "minorista",
+        "total_venta": 15000.00,
+        "medio_pago": "efectivo",
+        "cliente_nombre": "Consumidor Final",
+        "usuario_id": 1,
+        "creado_en": "2026-02-20T10:30:00"
+      },
+      {
+        "id": 2,
+        "fecha": "2026-02-21",
+        "turno": "tarde",
+        "tipo_venta": "minorista",
+        "total_venta": 8500.00,
+        "medio_pago": "transferencia",
+        "cliente_nombre": "Juan Pérez",
+        "usuario_id": 1,
+        "creado_en": "2026-02-21T16:45:00"
+      },
+      {
+        "id": 3,
+        "fecha": "2026-02-22",
+        "turno": "mañana",
+        "tipo_venta": "mayorista",
+        "total_venta": 45000.00,
+        "medio_pago": "cheque",
+        "cliente_nombre": "María González",
+        "usuario_id": 2,
+        "creado_en": "2026-02-22T09:15:00"
+      },
+      {
+        "id": 4,
+        "fecha": "2026-02-23",
+        "turno": "tarde",
+        "tipo_venta": "minorista",
+        "total_venta": 12300.00,
+        "medio_pago": "efectivo",
+        "cliente_nombre": "Carlos Rodríguez",
+        "usuario_id": 1,
+        "creado_en": "2026-02-23T18:20:00"
+      }
+    ],
+    "venta_detalles": [
+      {
+        "id": 1,
+        "venta_id": 1,
+        "producto_id": 10,
+        "cantidad": 3.000,
+        "precio_unitario": 5000.00,
+        "costo_unitario": 3500.00,
+        "subtotal": 15000.00
+      },
+      {
+        "id": 2,
+        "venta_id": 2,
+        "producto_id": 15,
+        "cantidad": 1.000,
+        "precio_unitario": 8500.00,
+        "costo_unitario": 6000.00,
+        "subtotal": 8500.00
+      },
+      {
+        "id": 3,
+        "venta_id": 3,
+        "producto_id": 22,
+        "cantidad": 10.000,
+        "precio_unitario": 4500.00,
+        "costo_unitario": 3200.00,
+        "subtotal": 45000.00
+      },
+      {
+        "id": 4,
+        "venta_id": 4,
+        "producto_id": 5,
+        "cantidad": 2.000,
+        "precio_unitario": 6150.00,
+        "costo_unitario": 4300.00,
+        "subtotal": 12300.00
+      }
+    ]
+  },
+  "summary": {
+    "total_ventas": 4,
+    "total_detalles": 4,
+    "monto_total_ventas": 80800.00,
+    "fecha_primera_venta": "2026-02-20",
+    "fecha_ultima_venta": "2026-02-23"
+  },
+  "notes": [
+    "Estos datos son históricos y deben migrarse a las tablas facturas/factura_detalles",
+    "El campo cliente_nombre debe mapearse a cliente_id buscando/coincidiendo con clientes existentes",
+    "NO eliminar las tablas de la BD hasta completar la migración de datos"
+  ]
+}

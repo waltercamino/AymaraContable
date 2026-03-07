@@ -1,0 +1,186 @@
+# =========================================================
+# AymaraContable - Gitignore Global
+# Sistema de Gestión Contable v4.0
+# =========================================================
+
+# =========================================================
+# PYTHON / BACKEND
+# =========================================================
+
+# Byte-compiled / optimized / DLL files
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
+
+# C extensions
+**/*.so
+
+# Distribution / packaging
+**/.Python
+**/build/
+**/develop-eggs/
+**/dist/
+**/downloads/
+**/eggs/
+**/eggs-info/
+**/lib/
+**/lib64/
+**/parts/
+**/sdist/
+**/var/
+**/wheels/
+**/pip-wheel-metadata/
+**/share/python-wheels/
+**/*.egg-info/
+**/.installed.cfg
+**/*.egg
+**/MANIFEST
+
+# PyInstaller
+**/*.manifest
+**/*.spec
+
+# Installer logs
+**/pip-log.txt
+**/pip-delete-this-directory.txt
+
+# Virtual Environment
+**/venv/
+**/env/
+**/ENV/
+**/.venv
+
+# IDEs
+**/.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/tasks.json
+.idea/
+*.swp
+*.swo
+*~
+
+# Unit test / coverage reports
+**/htmlcov/
+**/.tox/
+**/.nox/
+**/.coverage
+**/.coverage.*
+**/.cache
+**/nosetests.xml
+**/coverage.xml
+**/*.cover
+**/*.py,cover
+**/.hypothesis/
+**/.pytest_cache/
+
+# Environments
+**/.env
+**/.env.local
+**/.env.*.local
+
+# Server uploads
+**/uploads/
+**/logs/
+**/*.log
+
+# Database backups (optional - uncomment if needed)
+# **/*.db
+# **/*.sqlite3
+
+# =========================================================
+# NODE / FRONTEND
+# =========================================================
+
+# Dependencies
+**/node_modules/
+**/bower_components/
+
+# Build output
+**/dist/
+**/build/
+**/.next/
+**/out/
+
+# Debug
+**/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*
+**/pnpm-debug.log*
+**/lerna-debug.log*
+
+# Editor directories and files
+**/.DS_Store
+**/.DS_Store?
+**/._*
+**/.AppleDouble
+**/.LSOverride
+
+# Windows
+**/Thumbs.db
+**/ehthumbs.db
+**/Desktop.ini
+**/$RECYCLE.BIN/
+
+# =========================================================
+# GENERAL
+# =========================================================
+
+# Root null files
+$null
+**/$null
+
+# Temporary files
+**/*.tmp
+**/*.temp
+**/tmp/
+**/temp/
+
+# OS generated files
+**/ehthumbs_vista.db
+**/System Volume Information/
+
+# =========================================================
+# SENSIBLE (NO SUBIR NUNCA)
+# =========================================================
+
+# Environment variables
+**/.env
+**/.env.production
+**/.env.development
+**/.env.test
+
+# Secrets and keys
+**/*.pem
+**/*.key
+**/*.crt
+**/*.cer
+**/secrets/
+**/.secrets
+
+# Database files (if using SQLite)
+**/*.db
+**/*.sqlite
+**/*.sqlite3
+
+# Logs
+**/logs/
+**/*.log
+
+# Uploads (user generated content)
+**/uploads/
+**/downloads/
+**/backups/
+
+# =========================================================
+# DOCUMENTACIÓN TEMPORAL (OPCIONAL)
+# =========================================================
+
+# Uncomment if you want to exclude temporary documentation
+# docs/historico/
+# docs/migraciones/
+
+# =========================================================
+# FIN DEL GITIGNORE
+# =========================================================

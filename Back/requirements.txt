@@ -1,0 +1,33 @@
+# === HERRAMIENTAS DE BUILD (Python 3.13+) ===
+pip>=24.0
+setuptools>=69.0.0
+wheel>=0.42.0
+
+# === ESENCIAL PARA QUE ARRANQUE ===
+fastapi==0.109.0
+uvicorn==0.27.0
+pydantic==2.10.3
+pydantic-core==2.27.1
+pydantic-settings==2.6.1
+python-dotenv==1.0.0
+
+# === BASE DE DATOS ===
+psycopg2-binary==2.9.10   # Driver PostgreSQL (wheel para cp313)
+
+# === AUTENTICACIÓN Y SEGURIDAD ===
+python-jose[cryptography]==3.3.0  # JWT tokens
+passlib[bcrypt]==1.7.4            # Hash de contraseñas
+
+# === FORM DATA / UPLOADS ===
+python-multipart==0.0.6   # Form data / file uploads
+
+# === REPORTES ===
+reportlab==4.0.9       # Generación de PDF
+openpyxl==3.1.2        # Generación de Excel
+
+# === PENDIENTES (NO ESENCIALES) ===
+# pandas==2.2.0                  ← Excel (luego)
+# pdfplumber==0.10.3             ← PDF (luego)
+# sqlalchemy==2.0.25             ← ORM (luego)
+
+--prefer-binary
