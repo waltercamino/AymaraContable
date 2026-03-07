@@ -1,75 +1,47 @@
 # 📒 AymaraContable v4.0
 
-Sistema de Gestión Contable para PyMEs - Facturación, Caja, Cuenta Corriente y Reportes.
+**Sistema de Gestión Contable y Comercial para PyMEs**
+
+Facturación, Caja, Cuenta Corriente, Productos, Pedidos y Reportes - Todo en un solo lugar.
+
+[![Versión](https://img.shields.io/badge/versión-4.0-blue)](https://github.com/waltercamino/AymaraContable)
+[![Licencia](https://img.shields.io/badge/licencia-Propietario-red)](LICENSE)
 
 ---
 
-## 🏗️ Arquitectura
+## 📋 Tabla de Contenidos
 
-| Capa | Tecnología |
-|------|------------|
-| **Backend** | FastAPI + SQLAlchemy + PostgreSQL |
-| **Frontend** | React + TypeScript + Tailwind CSS + Vite |
-| **Comunicación** | REST API |
-| **Notificaciones** | React Toastify |
-| **Gráficos** | Recharts |
+- [Primeros Pasos](#-primeros-pasos)
+- [Usuarios de Prueba](#-usuarios-de-prueba)
+- [Estructura del Proyecto](#-estructura-del-proyecto)
+- [Características de Seguridad](#-características-de-seguridad)
+- [Matriz de Permisos](#-matriz-de-permisos)
+- [Características Principales](#-características-principales)
+- [Pendientes para Próximo Sprint](#-pendientes-para-próximo-sprint)
+- [Contacto y Repositorio](#-contacto-y-repositorio)
 
 ---
 
-## 📁 Estructura del Proyecto
+## 🚀 Primeros Pasos
 
-```
-AymaraContable/
-├── Back/
-│   ├── app/
-│   │   ├── api/              # Endpoints de la API
-│   │   ├── core/             # Configuración central y permisos
-│   │   ├── reportes/         # Generación de PDFs y Excel
-│   │   ├── services/         # Servicios auxiliares
-│   │   ├── utils/            # Utilitarios
-│   │   ├── config.py         # Configuración de la aplicación
-│   │   ├── database.py       # Conexión a PostgreSQL
-│   │   ├── main.py           # Punto de entrada
-│   │   ├── models.py         # Modelos SQLAlchemy
-│   │   └── schemas.py        # Esquemas Pydantic
-│   ├── migrations/           # Scripts SQL de migración
-│   ├── queries/              # Queries de referencia
-│   ├── scripts/              # Scripts utilitarios
-│   ├── uploads/              # Archivos subidos (no subir a Git)
-│   ├── .env                  # Variables de entorno (no subir a Git)
-│   └── requirements.txt      # Dependencias de Python
-│
-├── Front/
-│   ├── src/
-│   │   ├── components/       # Componentes reutilizables
-│   │   ├── context/          # Contextos de React
-│   │   ├── hooks/            # Custom hooks
-│   │   ├── pages/            # Páginas de la aplicación
-│   │   ├── services/         # Servicios API
-│   │   ├── types/            # Tipos TypeScript
-│   │   └── utils/            # Utilitarios
-│   ├── .env                  # Variables de entorno (no subir a Git)
-│   └── package.json          # Dependencias de Node
-│
-├── docs/
-│   ├── historico/            # Documentación de fixes históricos
-│   ├── migraciones/          # Scripts de migración de BD
-│   └── PERMISOS_MATRIX.md    # Matriz de permisos del sistema
-│
-└── README.md                 # Este archivo
+### 1. Clonar el Repositorio
+
+```bash
+git clone https://github.com/waltercamino/AymaraContable.git
+cd AymaraContable
 ```
 
----
+### 2. Configurar Base de Datos
 
-## 🚀 Instalación y Configuración
+```bash
+# Crear base de datos PostgreSQL
+createdb aymara_contable
 
-### Prerrequisitos
+# Restaurar backup de prueba (opcional)
+psql -d aymara_contable -f Back/backups_dev/aymara_backup_20260306.sql
+```
 
-- **Python 3.13+**
-- **Node.js 18+**
-- **PostgreSQL 14+**
-
-### 1. Backend
+### 3. Configurar Backend
 
 ```bash
 cd Back
@@ -84,17 +56,14 @@ python -m venv venv
 pip install -r requirements.txt
 
 # Configurar variables de entorno
-# Copiar .env.example a .env y ajustar valores
 copy .env.example .env
-
-# Ejecutar migraciones de base de datos
-# (Ver instrucciones en docs/migraciones/)
+# Editar .env con tus valores locales
 
 # Iniciar servidor
 uvicorn app.main:app --reload
 ```
 
-### 2. Frontend
+### 4. Configurar Frontend
 
 ```bash
 cd Front
@@ -103,118 +72,216 @@ cd Front
 npm install
 
 # Configurar variables de entorno
-# Copiar .env.example a .env y ajustar valores
 copy .env.example .env
+# Editar .env con tus valores locales
 
 # Iniciar servidor de desarrollo
 npm run dev
+```
 
-# Build de producción
-npm run build
+### 5. Acceder al Sistema
+
+Abrir navegador en: **http://localhost:5173**
+
+---
+
+## 👥 Usuarios de Prueba
+
+El sistema incluye usuarios preconfigurados para testing:
+
+| Usuario | Contraseña | Rol | Permisos |
+|---------|-----------|-----|----------|
+| `admin` | `admin123` | Admin Completo | Acceso total a todas las funciones |
+| `WalterAdmin` | `Admin123456` | Administrador | Gestión operativa (precios, caja, productos) |
+| `Vendedor` | `vendedor123` | Vendedor | Solo ventas y consulta |
+
+> ⚠️ **Importante:** Cambiar estas credenciales en producción.
+
+---
+
+## 📁 Estructura del Proyecto
+
+```
+AymaraContable/
+├── Back/
+│   ├── app/
+│   │   ├── api/              # Endpoints de la API REST
+│   │   ├── core/             # Configuración central y permisos
+│   │   ├── services/         # Servicios auxiliares
+│   │   ├── utils/            # Utilitarios
+│   │   ├── config.py         # Configuración de la aplicación
+│   │   ├── database.py       # Conexión a PostgreSQL
+│   │   ├── main.py           # Punto de entrada (FastAPI)
+│   │   ├── models.py         # Modelos SQLAlchemy
+│   │   └── schemas.py        # Esquemas Pydantic
+│   ├── backups_dev/          # Backups de desarrollo/testing
+│   ├── migrations/           # Scripts de migración de BD
+│   ├── scripts/              # Scripts utilitarios
+│   ├── .env.example          # Ejemplo de variables de entorno
+│   └── requirements.txt      # Dependencias de Python
+│
+├── Front/
+│   ├── src/
+│   │   ├── components/       # Componentes React reutilizables
+│   │   ├── context/          # Contextos de React (Auth, Theme)
+│   │   ├── hooks/            # Custom hooks (useAuth, useLoading)
+│   │   ├── pages/            # Páginas de la aplicación
+│   │   ├── services/         # Servicios API centralizados
+│   │   ├── types/            # Tipos TypeScript
+│   │   └── utils/            # Utilitarios (validaciones, formato)
+│   ├── .env.example          # Ejemplo de variables de entorno
+│   └── package.json          # Dependencias de Node.js
+│
+├── docs/
+│   ├── historico/            # Documentación de fixes históricos
+│   ├── migraciones/          # Scripts de migración de BD
+│   └── PERMISOS_MATRIX.md    # Matriz detallada de permisos
+│
+├── .gitignore                # Archivos ignorados por Git
+├── README.md                 # Este archivo
+└── CONTEXTO.md               # Contexto técnico del proyecto
 ```
 
 ---
 
-## 📦 Módulos del Sistema
+## 🔐 Características de Seguridad
+
+### Autenticación y Sesiones
+
+| Característica | Descripción |
+|---------------|-------------|
+| **Almacenamiento** | `sessionStorage` (se limpia al cerrar navegador) |
+| **Token** | JWT (JSON Web Token) con firma HS256 |
+| **Expiración** | 8 horas (480 minutos) desde última actividad |
+| **Alerta Caja Abierta** | Notificación al login si hay sesión de caja abierta |
+
+### Protección de Datos
+
+- **Contraseñas:** Hasheadas con bcrypt
+- **API:** Endpoints protegidos por autenticación JWT
+- **Roles:** Validación de permisos en backend y frontend
+- **Ambiente:** Variables sensibles en `.env` (no subir a Git)
+
+### Session Timeout
+
+El sistema cierra sesión automáticamente después de **8 horas** de inactividad. El token JWT incluye:
+- `exp`: Timestamp de expiración
+- `sub`: ID del usuario
+- `rol_id`: Rol del usuario para validación de permisos
+
+---
+
+## 📊 Matriz de Permisos
+
+### Roles del Sistema
+
+| Rol ID | Nombre | Icono | Descripción |
+|--------|--------|-------|-------------|
+| 1 | **Admin** | 👑 | Dueño del negocio - Acceso completo |
+| 2 | **Vendedor** | 📦 | Empleado de mostrador - Solo ventas y consulta |
+| 3 | **Administrador** | ⚙️ | Encargado operativo - Gestión diaria |
+
+### Permisos por Módulo
+
+| Módulo | Admin | Vendedor | Administrador |
+|--------|-------|----------|---------------|
+| **FC Ventas** | ✅ Todo | ⚡ Crear/Ver | ⚡ Crear/Ver |
+| **Nota de Crédito** | ✅ Todo | ⚡ Ver | ❌ Sin acceso |
+| **Caja** | ✅ Todo | ⚡ Ver | ⚡ Movimientos/Cierre |
+| **Clientes** | ✅ Todo | ✅ Todo | ❌ Sin acceso |
+| **Productos** | ✅ Todo | ⚡ Ver | ✅ Todo |
+| **Proveedores** | ✅ Todo | ❌ Sin acceso | ✅ Todo |
+| **Pedidos** | ✅ Todo | ⚡ Ver | ✅ Todo |
+| **Recibos** | ✅ Todo | ⚡ Ver | ⚡ Crear/Ver |
+| **Reportes** | ✅ Todo | ⚡ Ver | ✅ Exportar |
+| **Configuración** | ✅ Todo | ❌ Sin acceso | ❌ Sin acceso |
+| **Usuarios** | ✅ Todo | ❌ Sin acceso | ❌ Sin acceso |
+| **Backup** | ✅ Todo | ❌ Sin acceso | ❌ Sin acceso |
+
+**Leyenda:** ✅ Acceso completo | ⚡ Acceso parcial | ❌ Sin acceso
+
+> 📄 Ver matriz completa en: [docs/PERMISOS_MATRIX.md](docs/PERMISOS_MATRIX.md)
+
+---
+
+## ✨ Características Principales
+
+### Módulos del Sistema
 
 | Módulo | Descripción | Estado |
 |--------|-------------|--------|
-| **Dashboard** | Panel principal con métricas | ✅ Completo |
-| **FC Venta** | Facturación de ventas | ✅ Completo |
-| **FC Compra** | Facturación de compras | ✅ Completo |
-| **Caja** | Apertura/cierre y movimientos | ✅ Completo |
+| **Dashboard** | Panel principal con métricas clave | ✅ Completo |
+| **FC Venta** | Facturación de ventas + Notas de Crédito | ✅ Completo |
+| **FC Compra** | Facturación de compras + NC Proveedor | ✅ Completo |
+| **Caja** | Apertura, cierre, movimientos y categorías | ✅ Completo |
 | **Cta. Cte.** | Cuenta corriente clientes/proveedores | ✅ Completo |
-| **Productos** | ABM de productos y categorías | ✅ Completo |
+| **Productos** | ABM de productos, stock y categorías | ✅ Completo |
 | **Precios** | Actualización masiva de precios | ✅ Completo |
-| **Pedidos** | Pedidos a proveedores | ✅ Completo |
+| **Pedidos** | Pedidos a proveedores con seguimiento | ✅ Completo |
 | **Usuarios** | Gestión de usuarios y roles | ✅ Completo |
-| **Reportes** | Reportes varios | ✅ Completo |
-| **Ajustes** | Configuración del sistema | ✅ Completo |
-| **Backup** | Copias de seguridad | ✅ Completo |
-| **Permisos** | Matriz de permisos | ✅ Completo |
+| **Reportes** | Reportes varios con exportación PDF/Excel | ✅ Completo |
+| **Ajustes** | Configuración general del sistema | ✅ Completo |
+| **Backup** | Exportar y restaurar base de datos | ✅ Completo |
+
+### Características Técnicas
+
+- **Backend:** FastAPI + SQLAlchemy + PostgreSQL
+- **Frontend:** React + TypeScript + Tailwind CSS + Vite
+- **Comunicación:** REST API con validación de esquemas Pydantic
+- **Notificaciones:** React Toastify para feedback visual
+- **Gráficos:** Recharts para visualización de datos
+- **Loading States:** Hooks reutilizables con spinners
+- **Validaciones:** Frontend y backend (fecha no futura, unicidad, etc.)
+
+### Funcionalidades Destacadas
+
+- ✅ **Notas de Crédito integradas** en FC Venta/Compra (no módulo separado)
+- ✅ **Cuenta Corriente unificada** para clientes y proveedores
+- ✅ **Caja por sesiones** con apertura/cierre y categorías
+- ✅ **Imprimir comprobantes** desde cualquier módulo
+- ✅ **Exportar a PDF y Excel** en reportes
+- ✅ **IVA configurable** (Monotributo 0% o Responsable Inscripto 21%)
 
 ---
 
-## 🔧 Comandos Útiles
+## 📋 Pendientes para Próximo Sprint
 
-### Backend
+Las siguientes mejoras están planificadas para futuras versiones:
 
-```bash
-# Iniciar servidor de desarrollo
-uvicorn app.main:app --reload
-
-# Ejecutar migración
-python docs/migraciones/run_migration_XXX.py
-
-# Verificar tipo
-# (si está configurado mypy)
-```
-
-### Frontend
-
-```bash
-# Desarrollo
-npm run dev
-
-# Build de producción
-npm run build
-
-# Typecheck
-npm run typecheck
-
-# Lint
-npm run lint
-
-# Preview de producción
-npm run preview
-```
+| Prioridad | Módulo | Tarea | Descripción |
+|-----------|--------|-------|-------------|
+| 🔴 Alta | Permisos | Auditoría de permisos | Revisar consistencia de validaciones en todos los endpoints |
+| 🔴 Alta | Usuarios | Roles duplicados | Eliminar roles duplicados y normalizar asignaciones |
+| 🟡 Media | Global | `usuario_id` en módulos | Agregar tracking de usuario en todos los movimientos |
+| 🟡 Media | Caja | Imprimir reporte diario | Botón para imprimir cierre de caja con detalle |
+| 🟢 Baja | Sistema | IVA configurable desde UI | Permitir cambiar IVA desde Settings sin editar código |
+| 🟢 Baja | FC Venta | Checkbox "Reintegrar stock" | Opción opcional para NC de ventas |
+| 🟢 Baja | Global | Toasts en todos los módulos | Extender notificaciones a Productos/Clientes/Proveedores |
 
 ---
 
-## 📝 Convenciones de Desarrollo
+## 📞 Contacto y Repositorio
 
-### Backend
+### Repositorio Oficial
 
-- **Rutas API**: `/api/{recurso}/` (plural, kebab-case)
-- **Modelos**: SQLAlchemy con tipado Pydantic
-- **Respuestas**: Esquemas Pydantic en `schemas.py`
-- **Errores**: HTTPException con código y mensaje
-- **Logging**: Usar módulo `logging` de Python
+🔗 **https://github.com/waltercamino/AymaraContable**
 
-### Frontend
+### Contacto
 
-- **Componentes**: Funcionales con TypeScript
-- **Estilos**: Tailwind CSS
-- **Estado**: React Context + React Query
-- **Notificaciones**: React Toastify
-- **Rutas**: React Router v7
+- **Empresa:** Aymara Sistemas
+- **Versión:** 4.0
+- **Fecha:** Marzo 2026
+- **Ubicación:** Argentina
 
-### Base de Datos
+### Documentación Adicional
 
-- **Tablas**: Snake case plural (`cuenta_corriente`)
-- **Columnas**: Snake case (`fecha_emision`)
-- **PKs**: `id` (autoincremental)
-- **FKs**: `{tabla}_id` (`cliente_id`)
-
----
-
-## 🔐 Variables de Entorno
-
-### Backend (`.env`)
-
-```env
-DATABASE_URL=postgresql://usuario:password@localhost:5432/aymara_contable
-SECRET_KEY=tu_clave_secreta_para_jwt
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=30
-IVA_PORCENTAJE=0
-```
-
-### Frontend (`.env`)
-
-```env
-VITE_API_BASE_URL=http://localhost:8000
-```
+| Archivo | Descripción |
+|---------|-------------|
+| [CONTEXTO.md](CONTEXTO.md) | Contexto técnico y fixes aplicados |
+| [docs/PERMISOS_MATRIX.md](docs/PERMISOS_MATRIX.md) | Matriz detallada de permisos |
+| [docs/historico/](docs/historico/) | Historial de fixes y mejoras |
+| [docs/migraciones/](docs/migraciones/) | Scripts de migración de BD |
+| [Back/backups_dev/README.md](Back/backups_dev/README.md) | Instrucciones para restaurar backup |
 
 ---
 
@@ -222,23 +289,17 @@ VITE_API_BASE_URL=http://localhost:8000
 
 Este proyecto es propiedad de **Aymara Sistemas**. Todos los derechos reservados.
 
----
-
-## 👥 Contacto
-
-- **Empresa**: Aymara Sistemas
-- **Versión**: 4.0
-- **Fecha**: Marzo 2026
+**Uso exclusivo interno.** No distribuir ni compartir sin autorización.
 
 ---
 
-## 📚 Documentación Adicional
+## ⚠️ Advertencias Importantes
 
-- [Matriz de Permisos](docs/PERMISOS_MATRIX.md)
-- [Historial de Fixes](docs/historico/)
-- [Migraciones de BD](docs/migraciones/)
-- [Contexto del Proyecto](Back/docs/CONTEXTO.md)
+1. **NO subir archivos `.env`** con credenciales reales a GitHub
+2. **NO incluir backups de producción** en el repositorio
+3. **Cambiar credenciales de prueba** antes de usar en producción
+4. **Mantener actualizado** `requirements.txt` y `package.json`
 
 ---
 
-**⚠️ IMPORTANTE**: No subir archivos `.env`, `uploads/`, `logs/`, `venv/`, `node_modules/` o `dist/` al repositorio.
+**Hecho con ❤️ por Aymara Sistemas**

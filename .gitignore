@@ -182,13 +182,24 @@ $null
 # docs/migraciones/
 
 # =========================================================
+# EXCEPCIONES - ARCHIVOS QUE SÍ SE DEBEN SUBIR
+# =========================================================
+
+# Permitir backups de desarrollo (datos ficticios)
+!Back/backups_dev/
+
+# Permitir migraciones de base de datos
+!Back/migrations/
+
+# Permitir scripts seed (datos de prueba)
+!Back/scripts/seed*.sql
+!Back/*_seed.sql
+
+# =========================================================
 # FIN DEL GITIGNORE
 # =========================================================
 
-# Ignorar backups de producción
+# Ignorar backups de producción (NUNCA subir)
 backups/
 *-produccion.sql
 *.dump
-
-# PERMITIR backups de desarrollo
-!Back/backups_dev/
