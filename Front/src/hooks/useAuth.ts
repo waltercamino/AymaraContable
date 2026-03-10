@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { auth, caja, isTokenExpired, removeToken } from '../services/api'
 
 interface Usuario {
@@ -24,13 +24,22 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true)
   const [cajasAbiertas, setCajasAbiertas] = useState<CajaAbierta[]>([])
   const [showExpiredToast, setShowExpiredToast] = useState(false)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)  // ✅ Evitar loop de logout
+  
+  // ✅ Ref para evitar "Cannot access before initialization"
+  const handleLogoutRef = useRef<() => void>()
 
   useEffect(() => {
     // ✅ Suscribirse al evento de expiración de auth
     const handleAuthExpired = () => {
+      // ✅ Evitar re-entrancia: si ya se está cerrando sesión, no hacer nada
+      if (isLoggingOut) {
+        console.warn('⚠️ [useAuth] Logout ya en progreso, ignorando auth-expired')
+        return
+      }
       console.warn('⚠️ [useAuth] Sesión expirada detectada. Cerrando...')
       setShowExpiredToast(true)
-      handleLogout()
+      handleLogoutRef.current?.()  // ✅ Usar ref en lugar de llamada directa
     }
 
     window.addEventListener('auth-expired', handleAuthExpired)
@@ -38,7 +47,7 @@ export const useAuth = () => {
     return () => {
       window.removeEventListener('auth-expired', handleAuthExpired)
     }
-  }, [])
+  }, [isLoggingOut])  // ✅ Solo depende de isLoggingOut
 
   useEffect(() => {
     const token = sessionStorage.getItem('access_token')
@@ -53,7 +62,7 @@ export const useAuth = () => {
     // ✅ Verificar expiración del token al iniciar
     if (token && isTokenExpired()) {
       console.warn('⚠️ [useAuth] Token expirado al iniciar. Cerrando sesión...')
-      handleLogout()
+      handleLogoutRef.current?.()  // ✅ Usar ref
       return
     }
 
@@ -72,7 +81,7 @@ export const useAuth = () => {
       }
     }
     setLoading(false)
-  }, [])
+  }, [isLoggingOut])  // ✅ Solo depende de isLoggingOut
 
   const login = async (username: string, password: string) => {
     try {
@@ -108,8 +117,16 @@ export const useAuth = () => {
     }
   }
 
-  // ✅ Logout completo
+  // ✅ Logout completo (asignado a ref para evitar problemas de inicialización)
   const handleLogout = () => {
+    // ✅ Evitar múltiples llamados simultáneos
+    if (isLoggingOut) {
+      console.warn('⚠️ [useAuth] Logout ya en progreso, ignorando llamado')
+      return
+    }
+
+    setIsLoggingOut(true)
+
     try {
       auth.logout().catch(() => {})
     } catch (error) {
@@ -121,10 +138,15 @@ export const useAuth = () => {
       setUsuario(null)
       setIsAuthenticated(false)
       setCajasAbiertas([])
+      setIsLoggingOut(false)  // ✅ Resetear bandera
     }
   }
+  
+  // ✅ Asignar handleLogout al ref después de definirla
+  handleLogoutRef.current = handleLogout
 
   const logout = async () => {
+    // ✅ Usar handleLogout que ya tiene protección anti-reentrancia
     handleLogout()
   }
 

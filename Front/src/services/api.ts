@@ -43,6 +43,8 @@ export interface Producto {
   margen_efectivo_mayorista?: number | null
   iva_compra?: boolean
   iva_venta?: boolean
+  mostrar_precio_kilo?: boolean  // Mostrar precio por kilo en etiquetas (solo GRAMO)
+  unidad_medida?: string  // Unidad de medida: GRAMO, KILO, BOLSA_XKILO, etc.
   activo?: boolean
   creado_en?: string
   actualizado_en?: string | null
@@ -456,7 +458,17 @@ export const auth = {
 
   logout: async () => {
     try {
-      await request('/usuarios/logout', 'POST')
+      // ✅ Usar URL completa del backend para evitar loop con puerto del frontend
+      const token = getToken()
+      if (token) {
+        await fetch(`${API_BASE}/usuarios/logout`, {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        }).catch(() => {}) // Ignorar errores de red silenciosamente
+      }
     } catch (error) {
       // Si falla el logout del backend, continuar con logout local
       console.warn('Logout backend falló')

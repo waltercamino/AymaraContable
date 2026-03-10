@@ -30,7 +30,8 @@ export default function Productos() {
     stock_actual: 0,
     stock_minimo: 10,
     costo_promedio: 0,
-    activo: true
+    activo: true,
+    mostrar_precio_kilo: false  // Solo visible para unidad_medida = 'GRAMO'
   })
 
   // Estados para gestión de márgenes
@@ -106,7 +107,8 @@ export default function Productos() {
       stock_actual: 0,
       stock_minimo: 10,
       costo_promedio: 0,
-      activo: true
+      activo: true,
+      mostrar_precio_kilo: false
     })
     setModalAbierto(true)
   }
@@ -123,7 +125,8 @@ export default function Productos() {
       stock_actual: (producto.stock_actual as number) ?? 0,
       stock_minimo: (producto.stock_minimo as number) ?? 10,
       costo_promedio: (producto.costo_promedio as number) || 0,
-      activo: (producto.activo as boolean) ?? true
+      activo: (producto.activo as boolean) ?? true,
+      mostrar_precio_kilo: (producto.mostrar_precio_kilo as boolean) || false
     })
     setModalAbierto(true)
   }
@@ -704,14 +707,15 @@ export default function Productos() {
                     onChange={(e) => setFormData({...formData, unidad_medida: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                   >
-                    <option value="unidad">Unidad</option>
-                    <option value="kg">Kilogramo</option>
-                    <option value="g">Gramo</option>
-                    <option value="l">Litro</option>
-                    <option value="ml">Mililitro</option>
-                    <option value="m">Metro</option>
-                    <option value="caja">Caja</option>
-                    <option value="pack">Pack</option>
+                    <option value="GRAMO">Gramo (🛒 Minorista)</option>
+                    <option value="KILO">Kilogramo (🏢 Mayorista)</option>
+                    <option value="BOLSA_1KILO">Bolsa 1kg</option>
+                    <option value="BOLSA_2KILO">Bolsa 2kg</option>
+                    <option value="BOLSA_2.5KILO">Bolsa 2.5kg</option>
+                    <option value="BOLSA_3KILO">Bolsa 3kg</option>
+                    <option value="BOLSA_3.5KILO">Bolsa 3.5kg</option>
+                    <option value="BOLSA_5KILO">Bolsa 5kg</option>
+                    <option value="BOLSA_10KILO">Bolsa 10kg</option>
                   </select>
                 </div>
                 <div>
@@ -735,6 +739,26 @@ export default function Productos() {
                   />
                 </div>
               </div>
+
+              {/* Checkbox para mostrar precio por kilo (solo para GRAMO) */}
+              {formData.unidad_medida === 'GRAMO' && (
+                <div>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={formData.mostrar_precio_kilo}
+                      onChange={(e) => setFormData({...formData, mostrar_precio_kilo: e.target.checked})}
+                      className="w-4 h-4 text-blue-600 rounded"
+                    />
+                    <span className="text-sm font-medium text-gray-700">
+                      Mostrar precio por kilo en etiqueta (Granola)
+                    </span>
+                  </label>
+                  <p className="text-xs text-gray-500 mt-1">
+                    La etiqueta mostrará "$X x 100g" y "$X el kilo"
+                  </p>
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Precio Costo Promedio</label>

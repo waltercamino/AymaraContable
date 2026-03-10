@@ -62,6 +62,7 @@ class ProductoBase(BaseModel):
     margen_personalizado: Optional[float] = None
     iva_compra: Optional[bool] = False
     iva_venta: Optional[bool] = False
+    mostrar_precio_kilo: Optional[bool] = False  # Mostrar precio por kilo en etiquetas
     # ← Nuevos campos para M:N
     proveedor_ids: Optional[List[int]] = None  # IDs de proveedores para crear/editar
     proveedor_id_principal: Optional[int] = None  # ID del proveedor principal
@@ -81,6 +82,7 @@ class ProductoUpdate(BaseModel):
     margen_personalizado: Optional[float] = None
     iva_compra: Optional[bool] = None
     iva_venta: Optional[bool] = None
+    mostrar_precio_kilo: Optional[bool] = None
     activo: Optional[bool] = None
     # ← Nuevos campos para M:N
     proveedor_ids: Optional[List[int]] = None
@@ -707,3 +709,36 @@ class ConfiguracionEmpresaResponse(ConfiguracionEmpresaBase):
 
     class Config:
         from_attributes = True
+
+
+# ============================================
+# IMPORTACIÓN DE PRODUCTOS DESDE CSV
+# ============================================
+
+class ProductoImportCSV(BaseModel):
+    """Schema para cada fila del CSV de importación"""
+    sku: str
+    nombre: str
+    categoria_id: int
+    proveedor_id: int
+    unidad_medida: str
+    costo_promedio: float
+    margen_personalizado: Optional[float] = None
+    margen_personalizado_mayorista: Optional[float] = None
+    mostrar_precio_kilo: bool = False
+    stock_minimo: float = 0
+
+class ProductoImportResponse(BaseModel):
+    """Respuesta para cada producto importado"""
+    sku: str
+    nombre: str
+    id: int
+    mensaje: str
+
+class ProductoImportResult(BaseModel):
+    """Respuesta completa de la importación"""
+    total: int
+    importados: int
+    fallidos: int
+    errores: List[dict] = []
+    detalles: List[ProductoImportResponse] = []

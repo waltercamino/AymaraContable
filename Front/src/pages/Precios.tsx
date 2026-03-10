@@ -586,6 +586,79 @@ export default function Precios() {
   // ETIQUETAS PARA IMPRIMIR
   // ============================================
 
+  // Helper function to format price with Argentine format (points for thousands, no decimals)
+  // Uses Math.floor() for odd prices (psychological pricing)
+  const formatPriceLabel = (price: number): string => {
+    // Use floor to always round down for odd prices (e.g., 2899.9 → 2899)
+    const rounded = Math.floor(price)
+    // Convert to string and add points as thousand separators
+    return rounded.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+  }
+
+  // Helper function to format label content according to unit type
+  const getEtiquetaContenido = (producto: ProductoConPrecios) => {
+    const unidad = (producto.unidad_medida || 'GRAMO').toUpperCase()
+    const precioVenta = producto.precio_venta_minorista || producto.precio_venta || 0
+
+    // Case 1: GRAMO - precio_venta is per KILO, show price per 100g
+    if (unidad === 'GRAMO' || unidad === 'G') {
+      // precio_venta es por KILO, entonces precio por 100g = precio_venta / 10
+      const precio100g = precioVenta / 10
+      const precio100gFormatted = formatPriceLabel(precio100g)
+
+      // Check if "mostrar precio por kilo" is enabled (for Granola)
+      if (producto.mostrar_precio_kilo) {
+        const precioKilo = precioVenta  // Ya es precio por kilo
+        const precioKiloFormatted = formatPriceLabel(precioKilo)
+        return {
+          linea1: `$${precio100gFormatted} x 100g`,
+          linea2: `$${precioKiloFormatted} el kilo`,
+          showTwoLines: true
+        }
+      }
+
+      return {
+        linea1: `$${precio100gFormatted} x 100g`,
+        linea2: '',
+        showTwoLines: false
+      }
+    }
+
+    // Case 2: BOLSA_XKILO - show price per bag with kg
+    if (unidad.startsWith('BOLSA_')) {
+      // Extract kg from unit name (e.g., BOLSA_2.5KILO -> 2.5kg)
+      const kilos = unidad.replace('BOLSA_', '').replace('KILO', 'kg').replace('bolsa_', '').replace('kilo', 'kg')
+      const precioBolsa = producto.precio_venta_mayorista || precioVenta
+      const precioBolsaFormatted = formatPriceLabel(precioBolsa)
+
+      return {
+        linea1: `$${precioBolsaFormatted} la bolsa`,
+        linea2: `(${kilos})`,
+        showTwoLines: true
+      }
+    }
+
+    // Case 3: KILO - show price per kilo
+    if (unidad === 'KILO' || unidad === 'KG') {
+      const precioKilo = producto.precio_venta_mayorista || precioVenta
+      const precioKiloFormatted = formatPriceLabel(precioKilo)
+
+      return {
+        linea1: `$${precioKiloFormatted} el kilo`,
+        linea2: '',
+        showTwoLines: false
+      }
+    }
+
+    // Default: show regular price
+    const precioFormatted = formatPriceLabel(precioVenta)
+    return {
+      linea1: `$${precioFormatted}`,
+      linea2: unidad,
+      showTwoLines: false
+    }
+  }
+
   const toggleProductoEtiqueta = (productoId: number) => {
     setProductosParaEtiquetas(prev =>
       prev.includes(productoId)
@@ -611,7 +684,7 @@ export default function Precios() {
             <title>Etiquetas de Precios</title>
             <style>
               body { font-family: Arial, sans-serif; padding: 10px; }
-              h1 { font-size: 16px; margin-bottom: 10px; }
+              h1 { font-size: 14px; margin-bottom: 8px; }
 
               /* Grid de 4 etiquetas por línea (más angostas) */
               .etiquetas-grid {
@@ -625,7 +698,7 @@ export default function Precios() {
                 padding: 2mm;
                 text-align: center;
                 page-break-inside: avoid;
-                min-height: 18mm;
+                min-height: 15mm;
                 display: flex;
                 flex-direction: column;
                 justify-content: center;
@@ -633,9 +706,9 @@ export default function Precios() {
 
               .producto-nombre {
                 font-weight: bold;
-                font-size: 14px;
-                margin-bottom: 1mm;
-                line-height: 1.3;
+                font-size: 12px;
+                margin-bottom: 0.5mm;
+                line-height: 1.2;
                 word-wrap: break-word;
               }
 
@@ -645,26 +718,41 @@ export default function Precios() {
                 justify-content: center;
                 align-items: baseline;
                 gap: 3mm;
-                margin: 1mm 0;
+                margin: 0.5mm 0;
               }
 
               .producto-precio {
-                font-size: 28px;
+                font-size: 16px;
                 font-weight: bold;
                 color: #000;
+                white-space: nowrap;
               }
 
               .producto-unidad {
-                font-size: 12px;
+                font-size: 10px;
                 color: #666;
                 text-align: left;
                 min-width: 30px;
               }
 
               .producto-codigo {
-                font-size: 9px;
+                font-size: 8px;
                 color: #666;
-                margin-top: 1mm;
+                margin-top: 0.5mm;
+              }
+
+              /* Two-line label support (for Granola and BOLSA) */
+              .producto-precio-dos-lineas {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 1px;
+              }
+              .producto-precio-dos-lineas .linea-secundaria {
+                font-size: 12px;
+                font-weight: normal;
+                color: #444;
+                white-space: nowrap;
               }
 
               @media print {
@@ -673,9 +761,9 @@ export default function Precios() {
                   margin: 5mm;
                 }
                 body { padding: 0; }
-                h1 { font-size: 14px; }
+                h1 { font-size: 12px; }
                 .etiquetas-grid { gap: 1mm; }
-                .etiqueta { padding: 1.5mm; min-height: 16mm; }
+                .etiqueta { padding: 1.5mm; min-height: 14mm; }
               }
             </style>
           </head>
@@ -683,14 +771,18 @@ export default function Precios() {
             <h1>Etiquetas de Precios - ${new Date().toLocaleDateString()}</h1>
             <div class="etiquetas-grid">
               ${productosParaImprimir.map(p => {
-                const precioFormateado = (p.precio_venta || 0).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                const contenido = getEtiquetaContenido(p)
+                const precioDisplay = contenido.showTwoLines
+                  ? `<div class="producto-precio-dos-lineas">
+                      <span class="producto-precio">${contenido.linea1}</span>
+                      <span class="linea-secundaria">${contenido.linea2}</span>
+                     </div>`
+                  : `<div class="producto-precio">${contenido.linea1}</div>`
+
                 return `
                 <div class="etiqueta">
                   <div class="producto-nombre">${p.nombre}</div>
-                  <div class="precio-unidad-row">
-                    <div class="producto-precio">$${precioFormateado}</div>
-                    <div class="producto-unidad">${p.unidad_medida || ''}</div>
-                  </div>
+                  ${precioDisplay}
                   <div class="producto-codigo">Cód: ${p.sku || p.id}</div>
                 </div>
               `}).join('')}
@@ -1312,20 +1404,28 @@ export default function Precios() {
                   {productosParaEtiquetas.length} producto(s) seleccionado(s)
                 </p>
                 <div className="max-h-96 overflow-y-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                  {productosFiltrados.map(producto => (
-                    <label key={producto.id} className="flex items-center gap-2 p-3 bg-white rounded border hover:border-green-500 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={productosParaEtiquetas.includes(producto.id)}
-                        onChange={() => toggleProductoEtiqueta(producto.id)}
-                        className="w-4 h-4 text-green-600 rounded focus:ring-green-500"
-                      />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-700">{producto.nombre}</p>
-                        <p className="text-xs text-gray-500">{formatCurrency(producto.precio_venta || 0)}</p>
-                      </div>
-                    </label>
-                  ))}
+                  {productosFiltrados.map(producto => {
+                    // Usar getEtiquetaContenido para mostrar el precio formateado como en la etiqueta
+                    const contenidoEtiqueta = getEtiquetaContenido(producto)
+                    const precioDisplay = contenidoEtiqueta.showTwoLines
+                      ? `${contenidoEtiqueta.linea1} | ${contenidoEtiqueta.linea2}`
+                      : contenidoEtiqueta.linea1
+
+                    return (
+                      <label key={producto.id} className="flex items-center gap-2 p-3 bg-white rounded border hover:border-green-500 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={productosParaEtiquetas.includes(producto.id)}
+                          onChange={() => toggleProductoEtiqueta(producto.id)}
+                          className="w-4 h-4 text-green-600 rounded focus:ring-green-500"
+                        />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-gray-700">{producto.nombre}</p>
+                          <p className="text-xs text-green-600 font-medium">{precioDisplay}</p>
+                        </div>
+                      </label>
+                    )
+                  })}
                 </div>
               </div>
             </div>

@@ -121,6 +121,7 @@ class Producto(Base):
     margen_personalizado_mayorista = Column(Numeric(5,2))  # NULL = usa categoría (mayorista)
     iva_compra = Column(Boolean, default=False)
     iva_venta = Column(Boolean, default=False)
+    mostrar_precio_kilo = Column(Boolean, default=False)  # Mostrar precio por kilo en etiquetas (solo GRAMO)
     activo = Column(Boolean, default=True)
     creado_en = Column(DateTime, server_default=func.now())
     actualizado_en = Column(DateTime, server_default=func.now(), onupdate=func.now())

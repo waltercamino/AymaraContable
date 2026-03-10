@@ -1,14 +1,17 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.exc import IntegrityError
 from typing import List, Optional
 from datetime import datetime
+import csv
+import io
 from app.database import get_db
-from app.models import Producto, Categoria, HistorialMargenes, ProductoProveedor
+from app.models import Producto, Categoria, HistorialMargenes, ProductoProveedor, Proveedor
 from app.schemas import (
     ProductoResponse, ActualizarMargenMasivoRequest, ActualizarMargenMasivoResponse,
     HistorialMargenesResponse, MargenUpdateRequest, MargenUpdateResponse,
-    MargenIndividualUpdate, MargenIndividualResponse, ProductoCreate, ProductoUpdate
+    MargenIndividualUpdate, MargenIndividualResponse, ProductoCreate, ProductoUpdate,
+    ProductoImportCSV, ProductoImportResponse, ProductoImportResult
 )
 
 router = APIRouter(prefix="/api/productos", tags=["productos"])
@@ -156,6 +159,7 @@ def crear_producto(
             margen_personalizado=data.margen_personalizado,
             iva_compra=data.iva_compra or False,
             iva_venta=data.iva_venta or False,
+            mostrar_precio_kilo=data.mostrar_precio_kilo or False,
             stock_actual=data.stock_actual or 0,
             stock_minimo=data.stock_minimo or 0,
             activo=True  # Default a True para nuevos productos
@@ -485,6 +489,190 @@ def obtener_historial_margen(producto_id: int, db: Session = Depends(get_db)):
     return historial
 
 
+@router.post("/importar", response_model=ProductoImportResult)
+def importar_productos_csv(
+    file: UploadFile = File(..., description="Archivo CSV con los productos a importar"),
+    db: Session = Depends(get_db),
+    usuario_id: Optional[int] = None
+):
+    """
+    Importa productos desde un archivo CSV.
+    
+    El CSV debe tener las siguientes columnas:
+    - sku: Código único del producto
+    - nombre: Nombre del producto
+    - categoria_id: ID de la categoría (debe existir)
+    - proveedor_id: ID del proveedor (debe existir)
+    - unidad_medida: Unidad de medida (unidad, kg, g, GRAMO, l, ml, etc.)
+    - costo_promedio: Costo de compra
+    - margen_personalizado: Margen minorista (opcional)
+    - margen_personalizado_mayorista: Margen mayorista (opcional)
+    - mostrar_precio_kilo: Boolean para mostrar precio por kilo (opcional, default False)
+    - stock_minimo: Stock mínimo requerido (default 0)
+    
+    Validaciones:
+    1. categoria_id debe existir
+    2. proveedor_id debe existir
+    3. sku no debe estar duplicado en la base de datos
+    4. unidad_medida debe ser válido
+    """
+    # Validar extensión del archivo
+    if not file.filename.endswith('.csv'):
+        raise HTTPException(status_code=400, detail="El archivo debe ser un CSV")
+    
+    try:
+        # Leer contenido del archivo
+        content = file.file.read().decode('utf-8')
+        reader = csv.DictReader(io.StringIO(content))
+        
+        # Validar columnas requeridas
+        required_columns = ['sku', 'nombre', 'categoria_id', 'proveedor_id', 'unidad_medida', 'costo_promedio']
+        if reader.fieldnames is None:
+            raise HTTPException(status_code=400, detail="El archivo CSV está vacío o no tiene formato válido")
+        
+        missing_columns = [col for col in required_columns if col not in reader.fieldnames]
+        if missing_columns:
+            raise HTTPException(status_code=400, detail=f"Columnas faltantes en el CSV: {', '.join(missing_columns)}")
+        
+        # Unidades de medida válidas
+        unidades_validas = ['unidad', 'kg', 'g', 'GRAMO', 'KILO', 'l', 'ml', 'L', 'ML', 'KG', 'G', 'Unidad', 'UNIDAD', 'pack', 'caja']
+        
+        resultados = []
+        errores = []
+        importados = 0
+        fallidos = 0
+        
+        # Obtener categorías y proveedores válidos para validación rápida
+        categorias_validas = {c.id: c for c in db.query(Categoria).all()}
+        proveedores_validos = {p.id: p for p in db.query(Proveedor).filter(Proveedor.id.in_(
+            [row['proveedor_id'] for row in reader if row.get('proveedor_id')]
+        )).all()}
+        
+        # Re-iterar sobre el CSV (necesario después de leer fieldnames)
+        file.file.seek(0)
+        content = file.file.read().decode('utf-8')
+        reader = csv.DictReader(io.StringIO(content))
+        
+        # Obtener SKUs existentes para validación de duplicados
+        skus_existentes = {p.sku for p in db.query(Producto).filter(Producto.sku.isnot(None)).all()}
+        
+        for row_num, row in enumerate(reader, start=2):  # start=2 porque la fila 1 es el header
+            try:
+                # Parsear datos
+                sku = row.get('sku', '').strip()
+                nombre = row.get('nombre', '').strip()
+                categoria_id = int(row.get('categoria_id', 0))
+                proveedor_id = int(row.get('proveedor_id', 0))
+                unidad_medida = row.get('unidad_medida', '').strip()
+                costo_promedio = float(row.get('costo_promedio', 0))
+                margen_personalizado = float(row['margen_personalizado']) if row.get('margen_personalizado') and row['margen_personalizado'].strip() else None
+                margen_personalizado_mayorista = float(row['margen_personalizado_mayorista']) if row.get('margen_personalizado_mayorista') and row['margen_personalizado_mayorista'].strip() else None
+                mostrar_precio_kilo = row.get('mostrar_precio_kilo', 'FALSE').strip().upper() == 'TRUE'
+                stock_minimo = float(row.get('stock_minimo', 0)) if row.get('stock_minimo') and row['stock_minimo'].strip() else 0
+                
+                # Validación 1: categoria_id debe existir
+                if categoria_id not in categorias_validas:
+                    raise ValueError(f"Categoría ID={categoria_id} no existe")
+                
+                # Validación 2: proveedor_id debe existir
+                if proveedor_id not in proveedores_validos:
+                    raise ValueError(f"Proveedor ID={proveedor_id} no existe")
+                
+                # Validación 3: sku no duplicado
+                if not sku:
+                    raise ValueError("SKU está vacío")
+                if sku in skus_existentes:
+                    raise ValueError(f"SKU '{sku}' ya existe en la base de datos")
+                
+                # Validación 4: unidad_medida válida
+                if unidad_medida not in unidades_validas:
+                    raise ValueError(f"Unidad de medida '{unidad_medida}' no es válida. Válidas: {', '.join(unidades_validas)}")
+                
+                # Validación 5: nombre no vacío
+                if not nombre:
+                    raise ValueError("Nombre del producto está vacío")
+                
+                # Validación 6: costo_promedio no negativo
+                if costo_promedio < 0:
+                    raise ValueError("El costo_promedio no puede ser negativo")
+                
+                # Calcular precio de venta con margen y redondeo argentino
+                margen = margen_personalizado if margen_personalizado is not None else (float(categorias_validas[categoria_id].margen_default_minorista) if categorias_validas[categoria_id].margen_default_minorista else 25)
+                precio_venta = aplicar_redondeo_argentino(costo_promedio * (1 + margen / 100))
+                
+                # Calcular precio mayorista
+                margen_mayorista = margen_personalizado_mayorista if margen_personalizado_mayorista is not None else (float(categorias_validas[categoria_id].margen_default_mayorista) if categorias_validas[categoria_id].margen_default_mayorista else margen)
+                precio_venta_mayorista = aplicar_redondeo_argentino(costo_promedio * (1 + margen_mayorista / 100))
+                
+                # Crear producto
+                producto = Producto(
+                    sku=sku,
+                    nombre=nombre,
+                    categoria_id=categoria_id,
+                    proveedor_id=proveedor_id,
+                    unidad_medida=unidad_medida,
+                    costo_promedio=costo_promedio,
+                    precio_venta=precio_venta,
+                    precio_venta_mayorista=precio_venta_mayorista,
+                    margen_personalizado=margen_personalizado,
+                    margen_personalizado_mayorista=margen_personalizado_mayorista,
+                    mostrar_precio_kilo=mostrar_precio_kilo,
+                    stock_actual=0,  # Stock inicial en 0
+                    stock_minimo=stock_minimo,
+                    activo=True,
+                    iva_compra=False,
+                    iva_venta=False
+                )
+                
+                db.add(producto)
+                db.flush()  # Para obtener el ID
+                
+                # Registrar en producto_proveedor (relación M:N)
+                prod_prov = ProductoProveedor(
+                    producto_id=producto.id,
+                    proveedor_id=proveedor_id,
+                    costo_compra=costo_promedio,
+                    es_principal=True
+                )
+                db.add(prod_prov)
+                
+                db.commit()
+                
+                # Marcar SKU como existente para siguientes iteraciones
+                skus_existentes.add(sku)
+                
+                resultados.append(ProductoImportResponse(
+                    sku=sku,
+                    nombre=nombre,
+                    id=producto.id,
+                    mensaje="Importado exitosamente"
+                ))
+                importados += 1
+                
+            except Exception as e:
+                db.rollback()
+                errores.append({
+                    "fila": row_num,
+                    "sku": row.get('sku', 'N/A'),
+                    "error": str(e)
+                })
+                fallidos += 1
+        
+        return ProductoImportResult(
+            total=importados + fallidos,
+            importados=importados,
+            fallidos=fallidos,
+            errores=errores,
+            detalles=resultados
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=f"Error al procesar el archivo CSV: {str(e)}")
+
+
 @router.delete("/{producto_id}")
 def eliminar_producto(
     producto_id: int,
@@ -497,11 +685,11 @@ def eliminar_producto(
     producto = db.query(Producto).filter(Producto.id == producto_id).first()
     if not producto:
         raise HTTPException(status_code=404, detail="Producto no encontrado")
-    
+
     # ✅ Soft delete: marcar como inactivo en vez de eliminar físicamente
     producto.activo = False
     producto.actualizado_en = datetime.utcnow()
-    
+
     db.commit()
-    
+
     return {"message": "Producto eliminado exitosamente", "id": producto_id}
