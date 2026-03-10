@@ -1,10 +1,10 @@
-# 📒 AymaraContable v4.0
+# 📒 AymaraContable v1.0
 
 **Sistema de Gestión Contable y Comercial para PyMEs**
 
 Facturación, Caja, Cuenta Corriente, Productos, Pedidos y Reportes - Todo en un solo lugar.
 
-[![Versión](https://img.shields.io/badge/versión-4.0-blue)](https://github.com/waltercamino/AymaraContable)
+[![Versión](https://img.shields.io/badge/versión-1.0-blue)](https://github.com/waltercamino/AymaraContable)
 [![Licencia](https://img.shields.io/badge/licencia-Propietario-red)](LICENSE)
 
 ---
